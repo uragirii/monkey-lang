@@ -70,6 +70,13 @@ export class Lexer {
     return '0' <= ch && ch <= '9';
   }
 
+  private peekChar() {
+    if (this.position > this.input.length) {
+      return null;
+    }
+    return this.input[this.position + 1];
+  }
+
   public nextToken() {
     let token: Token;
 
@@ -77,6 +84,23 @@ export class Lexer {
 
     Object.keys(TOKENS).every((tokenKey: TokenKeys) => {
       if (this.ch === TOKENS[tokenKey].toLowerCase()) {
+        // Some special casses of muli-character tokens like "==" & "!="
+        // No we are not supporting "==="
+
+        if (this.ch === TOKENS.ASSIGN && this.peekChar() === '=') {
+          token = new Token(TOKENS.EQ, '==');
+          this.readChar(); // reads the "="
+          this.readChar(); // prepares for next toke
+          return false;
+        }
+
+        if (this.ch === TOKENS.BANG && this.peekChar() === '=') {
+          token = new Token(TOKENS.NOT_EQ, '!=');
+          this.readChar(); // reads the "="
+          this.readChar(); // prepares for next token
+          return false;
+        }
+
         token = new Token(TOKENS[tokenKey], this.ch);
         this.readChar();
         return false;
@@ -87,6 +111,11 @@ export class Lexer {
 
     // Default case
     if (!token) {
+      if (this.ch === null) {
+        token = new Token(TOKENS.EOF, '');
+        return token;
+      }
+
       // if its letter read it is as identifier
       if (this.isLetter(this.ch)) {
         const ident = this.readIdentifier();
@@ -94,8 +123,6 @@ export class Lexer {
       } else if (this.isDigit(this.ch)) {
         // if its a digit woho, read one,
         token = new Token(TOKENS.INT, this.readNumber());
-      } else if (this.ch === null) {
-        token = new Token(TOKENS.EOF, '');
       } else {
         token = new Token(TOKENS.ILLEGAL, this.ch);
       }

@@ -74,4 +74,72 @@ describe('test next token', () => {
       expect(lexer.nextToken().type).toBe(output[index]);
     }
   });
+
+  it('checks for <> ! * true if else', () => {
+    const input = `!-/*5;
+    5 < 10 > 5;
+    if (5 < 10) {
+      return true;
+  } else {
+      return false;
+}
+    `;
+    const output = [
+      TOKENS.BANG,
+      TOKENS.MINUS,
+      TOKENS.SLASH,
+      TOKENS.ASTERISK,
+      TOKENS.INT,
+      TOKENS.SEMICOLON,
+      TOKENS.INT,
+      TOKENS.LT,
+      TOKENS.INT,
+      TOKENS.GT,
+      TOKENS.INT,
+      TOKENS.SEMICOLON,
+      TOKENS.IF,
+      TOKENS.LPAREN,
+      TOKENS.INT,
+      TOKENS.LT,
+      TOKENS.INT,
+      TOKENS.RPAREN,
+      TOKENS.LBRACE,
+      TOKENS.RETURN,
+      TOKENS.TRUE,
+      TOKENS.SEMICOLON,
+      TOKENS.RBRACE,
+      TOKENS.ELSE,
+      TOKENS.LBRACE,
+      TOKENS.RETURN,
+      TOKENS.FALSE,
+      TOKENS.SEMICOLON,
+      TOKENS.RBRACE,
+    ];
+
+    const lexer = new Lexer(input);
+
+    for (let index = 0; index < output.length; index++) {
+      expect(lexer.nextToken().type).toBe(output[index]);
+    }
+  });
+
+  it('checks for two character tokens like == and !=', () => {
+    const input = `10 == 10; 10 != 9;`;
+    const output = [
+      TOKENS.INT,
+      TOKENS.EQ,
+      TOKENS.INT,
+      TOKENS.SEMICOLON,
+      TOKENS.INT,
+      TOKENS.NOT_EQ,
+      TOKENS.INT,
+      TOKENS.SEMICOLON,
+      TOKENS.EOF,
+    ];
+    const lexer = new Lexer(input);
+
+    for (let index = 0; index < output.length; index++) {
+      expect(lexer.nextToken().type).toBe(output[index]);
+    }
+  });
 });
