@@ -20,6 +20,7 @@ rl.on('close', () => {
 
 console.log(`Welcome to 🐒 Lang v0.0.1.\nPress Cntrl+C to exit.\n`);
 
+// eslint-disable-next-line no-constant-condition
 while (true) {
   try {
     const input = await ask('>> ');
