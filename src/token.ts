@@ -35,3 +35,8 @@ export const TOKENS = {
   FUNCTION: 'FUNCTION',
   LET: 'LET',
 } as const;
+
+export const KEYWORDS: Record<string, TokenType> = {
+  let: TOKENS.LET,
+  fn: TOKENS.FUNCTION,
+};

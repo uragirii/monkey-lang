@@ -21,4 +21,57 @@ describe('test next token', () => {
       expect(lexer.nextToken().type).toBe(output[index]);
     }
   });
+
+  it('checks for valid monkey code', () => {
+    const input = `let five = 5;
+    let ten = 10;
+       let add = fn(x, y) {
+         x + y;
+    };
+       let result = add(five, ten);`;
+    const output = [
+      TOKENS.LET,
+      TOKENS.IDENT,
+      TOKENS.ASSIGN,
+      TOKENS.INT,
+      TOKENS.SEMICOLON,
+      TOKENS.LET,
+      TOKENS.IDENT,
+      TOKENS.ASSIGN,
+      TOKENS.INT,
+      TOKENS.SEMICOLON,
+      TOKENS.LET,
+      TOKENS.IDENT,
+      TOKENS.ASSIGN,
+      TOKENS.FUNCTION,
+      TOKENS.LPAREN,
+      TOKENS.IDENT,
+      TOKENS.COMMA,
+      TOKENS.IDENT,
+      TOKENS.RPAREN,
+      TOKENS.LBRACE,
+      TOKENS.IDENT,
+      TOKENS.PLUS,
+      TOKENS.IDENT,
+      TOKENS.SEMICOLON,
+      TOKENS.RBRACE,
+      TOKENS.SEMICOLON,
+      TOKENS.LET,
+      TOKENS.IDENT,
+      TOKENS.ASSIGN,
+      TOKENS.IDENT,
+      TOKENS.LPAREN,
+      TOKENS.IDENT,
+      TOKENS.COMMA,
+      TOKENS.IDENT,
+      TOKENS.RPAREN,
+      TOKENS.SEMICOLON,
+    ];
+
+    const lexer = new Lexer(input);
+
+    for (let index = 0; index < output.length; index++) {
+      expect(lexer.nextToken().type).toBe(output[index]);
+    }
+  });
 });

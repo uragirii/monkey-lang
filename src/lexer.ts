@@ -1,4 +1,4 @@
-import { Token, TokenKeys, TOKENS } from './token.js';
+import { KEYWORDS, Token, TokenKeys, TOKENS, TokenType } from './token.js';
 
 export class Lexer {
   input: string;
@@ -23,23 +23,86 @@ export class Lexer {
     this.readPosition += 1;
   }
 
+  private readIdentifier() {
+    const startPosition = this.position;
+    while (this.isLetter(this.ch)) {
+      this.readChar();
+    }
+
+    return this.input.substring(startPosition, this.position);
+  }
+
+  private isLetter(ch: string) {
+    return ('a' <= ch && ch <= 'z') || ('A' <= ch && ch <= 'Z') || ch == '_';
+  }
+
+  private skipWhitespace() {
+    const isWhitespace = (ch) =>
+      ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r';
+
+    while (isWhitespace(this.ch)) {
+      this.readChar();
+    }
+  }
+
+  /**
+   * Function checks the type of given indentifier
+   * @param str
+   */
+  private lookupIdentifier(str: string): TokenType {
+    const keyword = KEYWORDS[str];
+
+    // If not found in the record return as identifier
+    return keyword ?? TOKENS.IDENT;
+  }
+
+  private readNumber() {
+    const start = this.position;
+
+    while (this.isDigit(this.ch)) {
+      this.readChar();
+    }
+
+    return this.input.substring(start, this.position);
+  }
+
+  private isDigit(ch: string) {
+    return '0' <= ch && ch <= '9';
+  }
+
   public nextToken() {
     let token: Token;
 
+    this.skipWhitespace();
+
     Object.keys(TOKENS).every((tokenKey: TokenKeys) => {
-      if (this.ch === TOKENS[tokenKey]) {
+      if (this.ch === TOKENS[tokenKey].toLowerCase()) {
         token = new Token(TOKENS[tokenKey], this.ch);
+        this.readChar();
         return false;
       }
 
       return true;
     });
 
+    // Default case
     if (!token) {
-      token = new Token(TOKENS.EOF, '');
+      // if its letter read it is as identifier
+      if (this.isLetter(this.ch)) {
+        const ident = this.readIdentifier();
+        token = new Token(this.lookupIdentifier(ident), ident);
+      } else if (this.isDigit(this.ch)) {
+        // if its a digit woho, read one,
+        token = new Token(TOKENS.INT, this.readNumber());
+      } else if (this.ch === null) {
+        token = new Token(TOKENS.EOF, '');
+      } else {
+        token = new Token(TOKENS.ILLEGAL, this.ch);
+      }
+
+      // token = new Token(TOKENS.EOF, '');
     }
 
-    this.readChar();
     return token;
   }
 }
