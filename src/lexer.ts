@@ -4,7 +4,7 @@ export class Lexer {
   input: string;
   position = 0; // current position in input (points to current char)
   readPosition = 0; // current reading position in input (after current char)
-  ch: string; // current char under examination
+  ch: string | null = null; // current char under examination
 
   constructor(input: string) {
     this.input = input;
@@ -32,12 +32,15 @@ export class Lexer {
     return this.input.substring(startPosition, this.position);
   }
 
-  private isLetter(ch: string) {
+  private isLetter(ch: string | null) {
+    if (ch === null) {
+      return false;
+    }
     return ('a' <= ch && ch <= 'z') || ('A' <= ch && ch <= 'Z') || ch == '_';
   }
 
   private skipWhitespace() {
-    const isWhitespace = (ch) =>
+    const isWhitespace = (ch: string | null) =>
       ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r';
 
     while (isWhitespace(this.ch)) {
@@ -66,7 +69,10 @@ export class Lexer {
     return this.input.substring(start, this.position);
   }
 
-  private isDigit(ch: string) {
+  private isDigit(ch: string | null) {
+    if (ch === null) {
+      return false;
+    }
     return '0' <= ch && ch <= '9';
   }
 
@@ -78,11 +84,11 @@ export class Lexer {
   }
 
   public nextToken() {
-    let token: Token;
+    let token: Token | null = null;
 
     this.skipWhitespace();
 
-    Object.keys(TOKENS).every((tokenKey: TokenKeys) => {
+    (Object.keys(TOKENS) as TokenKeys[]).every((tokenKey: TokenKeys) => {
       if (this.ch === TOKENS[tokenKey].toLowerCase()) {
         // Some special casses of muli-character tokens like "==" & "!="
         // No we are not supporting "==="
@@ -131,5 +137,13 @@ export class Lexer {
     }
 
     return token;
+  }
+
+  debug() {
+    let token = this.nextToken();
+    while (token.type !== TOKENS.EOF) {
+      console.log(token);
+      token = this.nextToken();
+    }
   }
 }
