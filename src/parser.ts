@@ -12,6 +12,7 @@ export class Parser {
   l: Lexer;
   private curToken: Token;
   private peekToken: Token;
+  errors: string[] = [];
 
   constructor(l: Lexer) {
     this.l = l;
@@ -58,6 +59,11 @@ export class Parser {
     return type === this.peekToken.type;
   }
 
+  private peekError(type: TokenType) {
+    const msg = `expected next token to be ${type}, got ${this.peekToken.type} instead`;
+    this.errors.push(msg);
+  }
+
   /**
    * Match the peekToken type with the given type and increments the currToken
    * if the token type matches
@@ -70,6 +76,7 @@ export class Parser {
       this.nextToken();
       return true;
     } else {
+      this.peekError(type);
       return false;
     }
   }

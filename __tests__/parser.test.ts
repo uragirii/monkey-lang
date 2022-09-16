@@ -9,6 +9,19 @@ const testLetStatements = (statement: LetStatement, value: string) => {
   expect(statement.name.tokenLiteral()).toBe(value);
 };
 
+const checkParseErrors = (parser: Parser) => {
+  if (parser.errors.length === 0) {
+    return;
+  }
+
+  const errors = parser.errors;
+
+  console.log(
+    `Parser has ${parser.errors.length} error${errors.length > 1 ? 's' : ''}`,
+  );
+  errors.forEach((error) => console.log(`parser error: ${error}`));
+};
+
 describe('tests parser', () => {
   it('tests with only let statements', () => {
     const input = `
@@ -19,6 +32,8 @@ describe('tests parser', () => {
 
     const lexer = new Lexer(input);
     const parser = new Parser(lexer);
+
+    checkParseErrors(parser);
 
     const program = parser.parse();
 
@@ -31,5 +46,22 @@ describe('tests parser', () => {
     program.statements.forEach((statement, i) =>
       testLetStatements(statement as LetStatement, letStatementValues[i]),
     );
+  });
+
+  it('tests for errors while parsing', () => {
+    const input = `
+    let x 5;
+    let y = 10;
+    let foobar = 838383;
+    `;
+
+    const lexer = new Lexer(input);
+    const parser = new Parser(lexer);
+
+    parser.parse();
+
+    checkParseErrors(parser);
+
+    expect(parser.errors.length).toBe(1);
   });
 });
