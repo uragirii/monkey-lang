@@ -1,5 +1,7 @@
 import {
+  ExpressionStatement,
   Identifier,
+  IntegerLiteral,
   LetStatement,
   ProgramNode,
   ReturnStatement,
@@ -107,5 +109,49 @@ describe('tests parser', () => {
     ]);
 
     expect(program.toString()).toBe('let myVar = anotherVar;');
+  });
+
+  it('tests identifier expression', () => {
+    const input = 'foobar;';
+
+    const lexer = new Lexer(input);
+    const parser = new Parser(lexer);
+
+    const program = parser.parse();
+
+    checkParseErrors(parser);
+    expect(parser.errors.length).toBe(0);
+    expect(program.statements.length).toBe(1);
+
+    const statement = program.statements[0] as ExpressionStatement;
+    expect(statement).toBeInstanceOf(ExpressionStatement);
+
+    const identifier = statement.expression as Identifier;
+
+    expect(identifier).toBeInstanceOf(Identifier);
+    expect(identifier.value).toBe('foobar');
+    expect(identifier.tokenLiteral()).toBe('foobar');
+  });
+
+  it('tests integer literal expression', () => {
+    const input = '5;';
+
+    const lexer = new Lexer(input);
+    const parser = new Parser(lexer);
+
+    const program = parser.parse();
+
+    checkParseErrors(parser);
+    expect(parser.errors.length).toBe(0);
+    expect(program.statements.length).toBe(1);
+
+    const statement = program.statements[0] as ExpressionStatement;
+    expect(statement).toBeInstanceOf(ExpressionStatement);
+
+    const identifier = statement.expression as IntegerLiteral;
+
+    expect(identifier).toBeInstanceOf(IntegerLiteral);
+    expect(identifier.value).toBe(5);
+    expect(identifier.tokenLiteral()).toBe('5');
   });
 });

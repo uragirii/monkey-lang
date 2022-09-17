@@ -1,15 +1,18 @@
 import {
   Expression,
+  ExpressionStatement,
   Identifier,
+  IntegerLiteral,
   LetStatement,
   ProgramNode,
   ReturnStatement,
   Statement,
 } from './ast';
 import { Lexer } from './lexer';
+import { Priority } from './priority';
 import { Token, TOKENS, TokenType } from './token';
 
-type PrefixParseFn = () => Expression;
+type PrefixParseFn = () => Expression | null;
 type InfixParseFn = (expression: Expression) => Expression;
 
 export class Parser {
@@ -18,13 +21,16 @@ export class Parser {
   private peekToken: Token;
   errors: string[] = [];
 
-  private prefixParseFns: Record<TokenType, PrefixParseFn> = {};
-  private infixParseFns: Record<TokenType, InfixParseFn> = {};
+  private prefixParseFns: Map<TokenType, PrefixParseFn> = new Map();
+  private infixParseFns: Map<TokenType, InfixParseFn> = new Map();
 
   constructor(l: Lexer) {
     this.l = l;
     this.curToken = this.l.nextToken();
     this.peekToken = this.l.nextToken();
+
+    this.registerPrefixFn(TOKENS.IDENT, this.parseIdentifierExpression);
+    this.registerPrefixFn(TOKENS.INT, this.parseIntegerLiteralExpression);
   }
 
   private nextToken() {
@@ -33,11 +39,11 @@ export class Parser {
   }
 
   private registerPrefixFn(tokenType: TokenType, fn: PrefixParseFn) {
-    this.prefixParseFns[tokenType] = fn;
+    this.prefixParseFns.set(tokenType, fn);
   }
 
   private registerInfixFn(tokenType: TokenType, fn: InfixParseFn) {
-    this.infixParseFns[tokenType] = fn;
+    this.infixParseFns.set(tokenType, fn);
   }
 
   parse(): ProgramNode {
@@ -65,9 +71,47 @@ export class Parser {
       }
 
       default: {
-        return null;
+        return this.parseExpressionStatement();
       }
     }
+  }
+  parseExpressionStatement(): ExpressionStatement | null {
+    const expression = new ExpressionStatement(this.curToken);
+
+    expression.expression = this.parseExpression(Priority.LOWEST);
+    if (this.peekTokenIs(TOKENS.SEMICOLON)) {
+      this.nextToken();
+    }
+
+    return expression;
+  }
+
+  parseIdentifierExpression = (): Identifier => {
+    return new Identifier(this.curToken.literal, this.curToken);
+  };
+
+  parseIntegerLiteralExpression = (): IntegerLiteral | null => {
+    const token = this.curToken;
+    try {
+      const value = parseInt(token.literal);
+      return new IntegerLiteral(token, value);
+    } catch (error) {
+      const msg = `Cannot parse ${token.literal} as Integer`;
+      this.errors.push(msg);
+      return null;
+    }
+  };
+
+  parseExpression(priority: Priority = Priority.LOWEST): Expression | null {
+    const prefixFn = this.prefixParseFns.get(this.curToken.type);
+
+    if (!prefixFn) {
+      return null;
+    }
+
+    const leftExp = prefixFn();
+
+    return leftExp;
   }
 
   private currTokenIs(type: TokenType) {

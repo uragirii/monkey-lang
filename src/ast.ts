@@ -65,6 +65,26 @@ export class Identifier extends Expression {
   }
 }
 
+export class IntegerLiteral extends Expression {
+  token: Token;
+  value: number;
+
+  constructor(token: Token, value: number) {
+    super();
+    this.token = token;
+
+    this.value = value;
+  }
+
+  toString(): string {
+    return this.value.toString();
+  }
+
+  tokenLiteral() {
+    return this.token.literal;
+  }
+}
+
 export class LetStatement extends Statement {
   /**
    * The LET Token
