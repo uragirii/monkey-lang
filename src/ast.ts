@@ -65,3 +65,18 @@ export class LetStatement extends Statement {
     return this.token.literal;
   }
 }
+
+export class ReturnStatement extends Statement {
+  token: Token;
+  returnValue: Expression;
+
+  constructor(token: Token, value: Expression) {
+    super();
+    this.token = token;
+    this.returnValue = value;
+  }
+
+  tokenLiteral(): string {
+    return this.token.literal;
+  }
+}

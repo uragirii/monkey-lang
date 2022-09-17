@@ -3,6 +3,7 @@ import {
   Identifier,
   LetStatement,
   ProgramNode,
+  ReturnStatement,
   Statement,
 } from './ast';
 import { Lexer } from './lexer';
@@ -43,6 +44,10 @@ export class Parser {
     switch (this.curToken.type) {
       case TOKENS.LET: {
         return this.parseLetStatement();
+      }
+
+      case TOKENS.RETURN: {
+        return this.parseReturnStatement();
       }
 
       default: {
@@ -111,5 +116,16 @@ export class Parser {
     return statement;
 
     // const statement = new LetStatement(this.curToken, )
+  }
+
+  private parseReturnStatement(): ReturnStatement | null {
+    const token = this.curToken;
+
+    // TODO: Implement
+    while (!this.currTokenIs(TOKENS.SEMICOLON)) {
+      this.nextToken();
+    }
+    const statement = new ReturnStatement(token, new Expression());
+    return statement;
   }
 }

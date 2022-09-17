@@ -1,4 +1,4 @@
-import { LetStatement } from '../src/ast';
+import { LetStatement, ReturnStatement } from '../src/ast';
 import { Lexer } from '../src/lexer';
 import { Parser } from '../src/parser';
 import { TOKENS } from '../src/token';
@@ -7,6 +7,10 @@ const testLetStatements = (statement: LetStatement, value: string) => {
   expect(statement.tokenLiteral().toUpperCase()).toBe(TOKENS.LET);
   expect(statement.name.value).toBe(value);
   expect(statement.name.tokenLiteral()).toBe(value);
+};
+
+const testReturnStatements = (statement: ReturnStatement) => {
+  expect(statement.tokenLiteral().toUpperCase()).toBe(TOKENS.RETURN);
 };
 
 const checkParseErrors = (parser: Parser) => {
@@ -60,8 +64,31 @@ describe('tests parser', () => {
 
     parser.parse();
 
-    checkParseErrors(parser);
+    // checkParseErrors(parser);
 
     expect(parser.errors.length).toBe(1);
+  });
+
+  it('tests for only return statements', () => {
+    const input = `
+    return 5;
+    return 10;
+    return 99212;
+    `;
+
+    const lexer = new Lexer(input);
+    const parser = new Parser(lexer);
+
+    checkParseErrors(parser);
+
+    const program = parser.parse();
+
+    expect(program).toBeDefined();
+
+    expect(program.statements.length).toBe(3);
+
+    program.statements.forEach((statement) =>
+      testReturnStatements(statement as ReturnStatement),
+    );
   });
 });
