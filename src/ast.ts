@@ -4,6 +4,9 @@ export class Node {
   tokenLiteral(): string {
     throw new Error('Not implemented');
   }
+  toString(): string {
+    throw new Error('Not implemented');
+  }
 }
 
 export class Statement extends Node {
@@ -11,6 +14,9 @@ export class Statement extends Node {
     return '';
   }
   statementNode() {
+    throw new Error('Not implemented');
+  }
+  toString(): string {
     throw new Error('Not implemented');
   }
 }
@@ -26,12 +32,21 @@ export class Expression extends Node {
 
 export class ProgramNode extends Node {
   statements: Statement[] = [];
+
+  constructor(statements: Statement[] = []) {
+    super();
+    this.statements = statements;
+  }
+
   tokenLiteral() {
     return this.statements[0].tokenLiteral() ?? '';
   }
+  toString() {
+    return this.statements.map((statement) => statement.toString()).join();
+  }
 }
 
-export class Identifier extends Node {
+export class Identifier extends Expression {
   token: Token;
   value: string;
 
@@ -39,6 +54,10 @@ export class Identifier extends Node {
     super();
     this.value = value;
     this.token = token;
+  }
+
+  toString(): string {
+    return this.value;
   }
 
   tokenLiteral() {
@@ -52,31 +71,54 @@ export class LetStatement extends Statement {
    */
   token: Token;
   name: Identifier;
-  value: Expression;
+  value: Expression | null = null;
 
-  constructor(token: Token, name: Identifier, value: Expression) {
+  constructor(token: Token, name: Identifier, value?: Expression) {
     super();
     this.token = token;
     this.name = name;
-    this.value = value;
+    this.value = value ?? null;
   }
 
   tokenLiteral(): string {
     return this.token.literal;
+  }
+
+  toString(): string {
+    return `${this.tokenLiteral()} ${this.name} = ${this.value ?? ''};`;
   }
 }
 
 export class ReturnStatement extends Statement {
   token: Token;
-  returnValue: Expression;
+  returnValue: Expression | null = null;
 
-  constructor(token: Token, value: Expression) {
+  constructor(token: Token, value?: Expression) {
     super();
     this.token = token;
-    this.returnValue = value;
+    this.returnValue = value ?? null;
   }
 
   tokenLiteral(): string {
     return this.token.literal;
+  }
+
+  toString(): string {
+    return `${this.tokenLiteral()} ${this.returnValue ?? ''} ;`;
+  }
+}
+
+export class ExpressionStatement extends Statement {
+  token: Token;
+  expression: Expression | null = null;
+
+  constructor(token: Token, expression?: Expression) {
+    super();
+    this.token = token;
+    this.expression = expression ?? null;
+  }
+
+  toString(): string {
+    return this.expression?.toString() ?? '';
   }
 }

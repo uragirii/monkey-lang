@@ -1,7 +1,12 @@
-import { LetStatement, ReturnStatement } from '../src/ast';
+import {
+  Identifier,
+  LetStatement,
+  ProgramNode,
+  ReturnStatement,
+} from '../src/ast';
 import { Lexer } from '../src/lexer';
 import { Parser } from '../src/parser';
-import { TOKENS } from '../src/token';
+import { Token, TOKENS } from '../src/token';
 
 const testLetStatements = (statement: LetStatement, value: string) => {
   expect(statement.tokenLiteral().toUpperCase()).toBe(TOKENS.LET);
@@ -90,5 +95,17 @@ describe('tests parser', () => {
     program.statements.forEach((statement) =>
       testReturnStatements(statement as ReturnStatement),
     );
+  });
+
+  it('checks toString() implementation', () => {
+    const program = new ProgramNode([
+      new LetStatement(
+        new Token(TOKENS.LET, 'let'),
+        new Identifier('myVar', new Token(TOKENS.IDENT, 'myVar')),
+        new Identifier('anotherVar', new Token(TOKENS.IDENT, 'anotherVar')),
+      ),
+    ]);
+
+    expect(program.toString()).toBe('let myVar = anotherVar;');
   });
 });

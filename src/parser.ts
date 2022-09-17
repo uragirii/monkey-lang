@@ -9,11 +9,17 @@ import {
 import { Lexer } from './lexer';
 import { Token, TOKENS, TokenType } from './token';
 
+type PrefixParseFn = () => Expression;
+type InfixParseFn = (expression: Expression) => Expression;
+
 export class Parser {
   l: Lexer;
   private curToken: Token;
   private peekToken: Token;
   errors: string[] = [];
+
+  private prefixParseFns: Record<TokenType, PrefixParseFn> = {};
+  private infixParseFns: Record<TokenType, InfixParseFn> = {};
 
   constructor(l: Lexer) {
     this.l = l;
@@ -24,6 +30,14 @@ export class Parser {
   private nextToken() {
     this.curToken = this.peekToken;
     this.peekToken = this.l.nextToken();
+  }
+
+  private registerPrefixFn(tokenType: TokenType, fn: PrefixParseFn) {
+    this.prefixParseFns[tokenType] = fn;
+  }
+
+  private registerInfixFn(tokenType: TokenType, fn: InfixParseFn) {
+    this.infixParseFns[tokenType] = fn;
   }
 
   parse(): ProgramNode {
@@ -111,13 +125,18 @@ export class Parser {
       this.nextToken();
     }
 
-    const statement = new LetStatement(token, indentifier, new Expression());
+    const statement = new LetStatement(token, indentifier);
 
     return statement;
 
     // const statement = new LetStatement(this.curToken, )
   }
 
+  /**
+   * Parses return statements like `return 5;`
+   * @todo Implement return logic;
+   * @returns lol returns a return statement
+   */
   private parseReturnStatement(): ReturnStatement | null {
     const token = this.curToken;
 
@@ -125,7 +144,7 @@ export class Parser {
     while (!this.currTokenIs(TOKENS.SEMICOLON)) {
       this.nextToken();
     }
-    const statement = new ReturnStatement(token, new Expression());
+    const statement = new ReturnStatement(token);
     return statement;
   }
 }
