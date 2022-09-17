@@ -4,6 +4,7 @@ import {
   Identifier,
   IntegerLiteral,
   LetStatement,
+  PrefixExpression,
   ProgramNode,
   ReturnStatement,
   Statement,
@@ -31,6 +32,8 @@ export class Parser {
 
     this.registerPrefixFn(TOKENS.IDENT, this.parseIdentifierExpression);
     this.registerPrefixFn(TOKENS.INT, this.parseIntegerLiteralExpression);
+    this.registerPrefixFn(TOKENS.BANG, this.parsePrefixExpression);
+    this.registerPrefixFn(TOKENS.MINUS, this.parsePrefixExpression);
   }
 
   private nextToken() {
@@ -75,7 +78,8 @@ export class Parser {
       }
     }
   }
-  parseExpressionStatement(): ExpressionStatement | null {
+
+  private parseExpressionStatement(): ExpressionStatement | null {
     const expression = new ExpressionStatement(this.curToken);
 
     expression.expression = this.parseExpression(Priority.LOWEST);
@@ -86,11 +90,11 @@ export class Parser {
     return expression;
   }
 
-  parseIdentifierExpression = (): Identifier => {
+  private parseIdentifierExpression = (): Identifier => {
     return new Identifier(this.curToken.literal, this.curToken);
   };
 
-  parseIntegerLiteralExpression = (): IntegerLiteral | null => {
+  private parseIntegerLiteralExpression = (): IntegerLiteral | null => {
     const token = this.curToken;
     try {
       const value = parseInt(token.literal);
@@ -102,10 +106,29 @@ export class Parser {
     }
   };
 
-  parseExpression(priority: Priority = Priority.LOWEST): Expression | null {
+  private parsePrefixExpression = (): PrefixExpression => {
+    const token = this.curToken;
+
+    const expression = new PrefixExpression(token, token.literal);
+
+    this.nextToken();
+
+    expression.right = this.parseExpression(Priority.PREFIX);
+    return expression;
+  };
+
+  private noPrefixParseFnError(type: TokenType) {
+    const msg = `parse error : Cannot find a prefix parse function to parse '${type}'`;
+    this.errors.push(msg);
+  }
+
+  private parseExpression(
+    priority: Priority = Priority.LOWEST,
+  ): Expression | null {
     const prefixFn = this.prefixParseFns.get(this.curToken.type);
 
     if (!prefixFn) {
+      this.noPrefixParseFnError(this.curToken.type);
       return null;
     }
 

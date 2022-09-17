@@ -3,6 +3,7 @@ import {
   Identifier,
   IntegerLiteral,
   LetStatement,
+  PrefixExpression,
   ProgramNode,
   ReturnStatement,
 } from '../src/ast';
@@ -18,6 +19,12 @@ const testLetStatements = (statement: LetStatement, value: string) => {
 
 const testReturnStatements = (statement: ReturnStatement) => {
   expect(statement.tokenLiteral().toUpperCase()).toBe(TOKENS.RETURN);
+};
+
+const testIntegerLiteral = (identifier: IntegerLiteral, value: number) => {
+  expect(identifier).toBeInstanceOf(IntegerLiteral);
+  expect(identifier.value).toBe(value);
+  expect(identifier.tokenLiteral()).toBe(value.toString());
 };
 
 const checkParseErrors = (parser: Parser) => {
@@ -150,8 +157,45 @@ describe('tests parser', () => {
 
     const identifier = statement.expression as IntegerLiteral;
 
-    expect(identifier).toBeInstanceOf(IntegerLiteral);
-    expect(identifier.value).toBe(5);
-    expect(identifier.tokenLiteral()).toBe('5');
+    testIntegerLiteral(identifier, 5);
+  });
+
+  it('tests for prefix expressions', () => {
+    const prefixTests = [
+      {
+        input: '!5',
+        operator: '!',
+        value: 5,
+      },
+      {
+        input: '-15',
+        operator: '-',
+        value: 15,
+      },
+    ];
+
+    prefixTests.forEach((prefixTest) => {
+      const { input, operator, value } = prefixTest;
+
+      const lexer = new Lexer(input);
+      const parser = new Parser(lexer);
+
+      const program = parser.parse();
+
+      checkParseErrors(parser);
+      expect(parser.errors.length).toBe(0);
+      expect(program.statements.length).toBe(1);
+
+      const statement = program.statements[0] as ExpressionStatement;
+
+      expect(statement).toBeInstanceOf(ExpressionStatement);
+      const expression = statement.expression as PrefixExpression;
+
+      expect(expression).toBeInstanceOf(PrefixExpression);
+      expect(expression.operator).toBe(operator);
+      testIntegerLiteral(expression.right as IntegerLiteral, value);
+    });
+
+    expect(true).toBe(true);
   });
 });

@@ -142,3 +142,24 @@ export class ExpressionStatement extends Statement {
     return this.expression?.toString() ?? '';
   }
 }
+
+export class PrefixExpression extends Expression {
+  token: Token;
+  operator: string;
+  right: Expression | null = null;
+
+  constructor(token: Token, operator: string, right?: Expression) {
+    super();
+    this.token = token;
+    this.operator = operator;
+    this.right = right ?? null;
+  }
+
+  tokenLiteral(): string {
+    return this.token.literal;
+  }
+
+  toString(): string {
+    return `(${this.operator} ${this.right ?? ''})`;
+  }
+}
